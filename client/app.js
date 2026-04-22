@@ -383,6 +383,7 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
 let isDragging = false;
 let startX, startY;
 let currentX, currentY;
+let dragRafId = null;
 const container = document.getElementById('cards-container');
 
 function initCards() {
@@ -540,29 +541,47 @@ function startDrag(e) {
 
 function drag(e) {
   if (!isDragging) return;
-  // No need for preventDefault with pointer events usually, but good for safety
-  if (e.cancelable) e.preventDefault(); 
+  if (e.cancelable) e.preventDefault();
 
   currentX = e.clientX;
   currentY = e.clientY;
 
+  if (!dragRafId) {
+    dragRafId = requestAnimationFrame(updateCardTransform);
+  }
+}
+
+function updateCardTransform() {
+  if (!isDragging) {
+    dragRafId = null;
+    return;
+  }
+
   const deltaX = currentX - startX;
   const deltaY = currentY - startY;
-  const rotate = deltaX * 0.05; // calculate rotation
+  const rotate = deltaX * 0.05;
 
   const card = getTopCard();
-  card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
+  if (card) {
+    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
 
-  // Opacity of stamps
-  const likeOpacity = Math.max(0, Math.min(1, deltaX / 100));
-  const nopeOpacity = Math.max(0, Math.min(1, -deltaX / 100));
+    const likeOpacity = Math.max(0, Math.min(1, deltaX / 100));
+    const nopeOpacity = Math.max(0, Math.min(1, -deltaX / 100));
 
-  card.querySelector('.stamp-like').style.opacity = likeOpacity;
-  card.querySelector('.stamp-nope').style.opacity = nopeOpacity;
+    card.querySelector('.stamp-like').style.opacity = likeOpacity;
+    card.querySelector('.stamp-nope').style.opacity = nopeOpacity;
+  }
+
+  dragRafId = requestAnimationFrame(updateCardTransform);
 }
 
 function endDrag(e) {
   isDragging = false;
+  if (dragRafId) {
+    cancelAnimationFrame(dragRafId);
+    dragRafId = null;
+  }
+  
   document.removeEventListener('pointermove', drag);
   document.removeEventListener('pointerup', endDrag);
 
