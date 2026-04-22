@@ -532,7 +532,10 @@ function startDrag(e) {
   document.addEventListener('pointerup', endDrag);
 
   const card = getTopCard();
-  card.style.transition = 'none'; // remove transition during drag
+  if (card) {
+    card.style.transition = 'none'; // remove transition during drag
+    card.setPointerCapture(e.pointerId);
+  }
 }
 
 function drag(e) {

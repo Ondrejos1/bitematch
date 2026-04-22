@@ -424,6 +424,7 @@ input[type="text"]:focus {
   border: 1px solid var(--surface-light);
   /* default state for cards below the top one */
   transform-origin: 50% 100%;
+  touch-action: none;
 }
 
 .card-image-placeholder {
