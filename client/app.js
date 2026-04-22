@@ -700,9 +700,6 @@ function showMatchOverlay(restaurant) {
   triggerConfetti();
 }
 
-document.getElementById('btn-continue-swipe').addEventListener('click', () => {
-  document.getElementById('match-overlay').classList.add('hidden');
-});
 
 document.getElementById('btn-go-to-results').addEventListener('click', () => {
   document.getElementById('match-overlay').classList.add('hidden');
