@@ -114,7 +114,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const codeFromUrl = urlParams.get('code');
   if (codeFromUrl) {
-    document.getElementById('lobby-code-input').value = codeFromUrl.toUpperCase();
+    const code = codeFromUrl.toUpperCase();
+    document.getElementById('lobby-code-input').value = code;
+    
+    // UI adjustment for joining via link
+    document.getElementById('btn-create-lobby').classList.add('hidden');
+    const joinBtn = document.getElementById('btn-join-lobby');
+    joinBtn.innerHTML = `<i data-lucide="user-plus"></i> Připojit se k ${code}`;
+    joinBtn.classList.replace('btn-secondary', 'btn-primary');
+    
+    // Move join section to top for better focus
+    const joinSection = document.querySelector('.join-section');
+    joinSection.style.border = 'none';
+    joinSection.style.marginTop = '0';
+    joinSection.querySelector('p').textContent = 'Právě ses připojil k odkazu! Zvol si jméno a emoji:';
+    
+    // Add special event for this big join button
+    joinBtn.addEventListener('click', () => {
+       // Just trigger the join logic
+    });
+    
+    lucide.createIcons();
   }
 
   // Create Lobby
