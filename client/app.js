@@ -277,6 +277,9 @@ function connectToLobby(code) {
     // Update UI
     document.getElementById('lobby-code-display').textContent = code;
 
+    // Clean up URL so refresh goes to home screen, not back to join screen
+    window.history.replaceState({}, document.title, window.location.pathname);
+
     // Generate QR code pointing to this app
     const joinUrl = `${window.location.origin}/?code=${code}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
