@@ -155,13 +155,13 @@ input[type="text"]:focus {
 
 /* === Landing Page === */
 #screen-home {
-  justify-content: space-between;
-  padding: 40px 20px;
+  justify-content: flex-start;
+  padding: 10px 20px 40px 20px;
 }
 
 .hero {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .logo {
@@ -174,8 +174,8 @@ input[type="text"]:focus {
 }
 
 .logo-img {
-  width: 140px; /* Slightly larger for this detailed logo */
-  height: 140px;
+  width: 110px; /* Reduced from 140px for tighter layout */
+  height: 110px;
   margin-bottom: 5px;
   transition: transform 0.3s ease;
   object-fit: contain;
