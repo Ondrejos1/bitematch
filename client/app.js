@@ -117,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const code = codeFromUrl.toUpperCase();
     document.getElementById('lobby-code-input').value = code;
     
+    // Clear name to prevent duplicate errors if testing on same machine
+    document.getElementById('username').value = '';
+    
     // UI adjustment for joining via link
     document.getElementById('btn-create-lobby').classList.add('hidden');
     document.getElementById('radius-container').classList.add('hidden');
