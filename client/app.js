@@ -518,25 +518,18 @@ function setupCardEvents() {
     return;
   }
 
-  card.addEventListener('mousedown', startDrag);
-  card.addEventListener('touchstart', startDrag, { passive: true });
+  card.addEventListener('pointerdown', startDrag);
 }
 
 function startDrag(e) {
   isDragging = true;
-  startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-  startY = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
+  startX = e.clientX;
+  startY = e.clientY;
   currentX = startX;
   currentY = startY;
 
-  document.addEventListener('mousemove', drag);
-  document.addEventListener('touchmove', drag, { passive: false });
-  
-  if (e.type === 'touchstart') {
-    document.addEventListener('touchend', endDrag);
-  } else {
-    document.addEventListener('mouseup', endDrag);
-  }
+  document.addEventListener('pointermove', drag);
+  document.addEventListener('pointerup', endDrag);
 
   const card = getTopCard();
   card.style.transition = 'none'; // remove transition during drag
@@ -544,10 +537,11 @@ function startDrag(e) {
 
 function drag(e) {
   if (!isDragging) return;
-  e.preventDefault(); // prevent scrolling
+  // No need for preventDefault with pointer events usually, but good for safety
+  if (e.cancelable) e.preventDefault(); 
 
-  currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-  currentY = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
+  currentX = e.clientX;
+  currentY = e.clientY;
 
   const deltaX = currentX - startX;
   const deltaY = currentY - startY;
@@ -566,10 +560,8 @@ function drag(e) {
 
 function endDrag(e) {
   isDragging = false;
-  document.removeEventListener('mousemove', drag);
-  document.removeEventListener('touchmove', drag);
-  document.removeEventListener('mouseup', endDrag);
-  document.removeEventListener('touchend', endDrag);
+  document.removeEventListener('pointermove', drag);
+  document.removeEventListener('pointerup', endDrag);
 
   const card = getTopCard();
   const deltaX = currentX - startX;
@@ -579,11 +571,11 @@ function endDrag(e) {
     // IT'S A TAP!
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const tapY = e.type.includes('mouse') ? e.clientY : (e.changedTouches ? e.changedTouches[0].clientY : e.clientY);
+    const tapY = e.clientY;
 
     // Only switch if tapped on the top half (image area)
     if (tapY < rect.top + rect.height * 0.5) {
-      const tapX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : e.clientX);
+      const tapX = e.clientX;
       const isRight = tapX > rect.left + rect.width / 2;
       switchPhoto(card, isRight ? 1 : -1);
     }
