@@ -813,10 +813,31 @@ function renderResults(results, matches) {
 document.getElementById('btn-go-home').addEventListener('click', () => {
   if (socket) socket.disconnect();
   hideLoading();
+  resetHomeUI();
   state.lobby = { code: null, isHost: false, players: [] };
   state.game = { restaurants: [], currentIndex: 0, totalSwipesNeeded: 0, currentTotalSwipes: 0 };
   showScreen('home');
 });
+
+function resetHomeUI() {
+  // Restore all elements to default state
+  document.getElementById('btn-create-lobby').classList.remove('hidden');
+  document.getElementById('radius-container').classList.remove('hidden');
+  
+  const joinBtn = document.getElementById('btn-join-lobby');
+  joinBtn.innerHTML = 'Připojit';
+  joinBtn.classList.replace('btn-primary', 'btn-secondary');
+  
+  const joinSection = document.querySelector('.join-section');
+  joinSection.style.borderTop = '1px solid var(--surface-light)';
+  joinSection.style.marginTop = '20px';
+  joinSection.querySelector('p').textContent = 'Nebo se připoj do existující:';
+  
+  document.getElementById('lobby-code-input').value = '';
+  document.getElementById('username').value = localStorage.getItem('w2e_name') || '';
+  
+  lucide.createIcons();
+}
 
 document.getElementById('btn-reroll').addEventListener('click', () => {
   if (state.lobby.isHost && state.lobby.code) {
