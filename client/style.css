@@ -27,9 +27,10 @@ body {
   animation: gradientBG 15s ease infinite;
   color: var(--text-primary);
   font-family: var(--font-family);
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
   display: flex;
   justify-content: center;
 }
@@ -48,10 +49,10 @@ body {
   }
 }
 
-#app {
   width: 100%;
   max-width: 500px;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   position: relative;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.4);
@@ -62,7 +63,6 @@ body {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
-.screen {
   position: absolute;
   top: 0;
   left: 0;
@@ -71,6 +71,8 @@ body {
   display: flex;
   flex-direction: column;
   padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
   opacity: 0;
@@ -160,7 +162,7 @@ input[type="text"]:focus {
 
 .hero {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .logo {
@@ -193,8 +195,8 @@ input[type="text"]:focus {
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 40px;
+  gap: 15px;
+  margin-top: 20px;
 }
 
 .user-setup {
