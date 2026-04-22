@@ -223,6 +223,14 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Protection against duplicate nicknames
+    const trimmedName = (name || 'Anonym').trim();
+    const isDuplicate = Array.from(lobby.players.values()).some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+    if (isDuplicate) {
+      socket.emit('error', 'Toto jméno už je v místnosti obsazené! Zvol si jiné.');
+      return;
+    }
+
     // Assign host if first
     let isHost = false;
     if (lobby.players.size === 0) {
