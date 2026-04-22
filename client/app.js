@@ -551,11 +551,11 @@ function endDrag(e) {
     // IT'S A TAP!
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const tapY = e.type.includes('mouse') ? e.pageY : e.changedTouches[0].pageY;
+    const tapY = e.type.includes('mouse') ? e.clientY : (e.changedTouches ? e.changedTouches[0].clientY : e.clientY);
 
     // Only switch if tapped on the top half (image area)
     if (tapY < rect.top + rect.height * 0.5) {
-      const tapX = e.type.includes('mouse') ? e.pageX : e.changedTouches[0].pageX;
+      const tapX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : e.clientX);
       const isRight = tapX > rect.left + rect.width / 2;
       switchPhoto(card, isRight ? 1 : -1);
     }
