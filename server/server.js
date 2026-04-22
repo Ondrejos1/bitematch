@@ -17,6 +17,11 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
+// Health check for hosting services
+app.get('/', (req, res) => {
+  res.send('BiteMatch API is running 🍕');
+});
+
 // In-memory store for lobbies
 const lobbies = new Map();
 
@@ -32,7 +37,7 @@ function generateLobbyCode() {
 
 // Fetch restaurants from Google Places API
 async function fetchRestaurants(lat, lon, radius = 1500) {
-  const GOOGLE_API_KEY = 'AIzaSyAndDn46ioSltBCezx2KUtpFZ1AlAh1Pu0';
+  const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyAndDn46ioSltBCezx2KUtpFZ1AlAh1Pu0';
   const googleUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lon}&radius=${radius}&type=restaurant&keyword=restaurace|bistro&language=cs&key=${GOOGLE_API_KEY}`;
   
   try {
