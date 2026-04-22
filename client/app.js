@@ -119,8 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // UI adjustment for joining via link
     document.getElementById('btn-create-lobby').classList.add('hidden');
+    document.getElementById('radius-container').classList.add('hidden');
+    
     const joinBtn = document.getElementById('btn-join-lobby');
-    joinBtn.innerHTML = `<i data-lucide="user-plus"></i> Připojit se k ${code}`;
+    joinBtn.innerHTML = `<i data-lucide="user-plus"></i> Připojit se`;
     joinBtn.classList.replace('btn-secondary', 'btn-primary');
     
     // Move join section to top for better focus
