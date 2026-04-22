@@ -503,8 +503,12 @@ function startDrag(e) {
 
   document.addEventListener('mousemove', drag);
   document.addEventListener('touchmove', drag, { passive: false });
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
+  
+  if (e.type === 'touchstart') {
+    document.addEventListener('touchend', endDrag);
+  } else {
+    document.addEventListener('mouseup', endDrag);
+  }
 
   const card = getTopCard();
   card.style.transition = 'none'; // remove transition during drag
@@ -543,7 +547,7 @@ function endDrag(e) {
   const deltaX = currentX - startX;
   const deltaY = currentY - startY;
 
-  if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) {
+  if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
     // IT'S A TAP!
     if (!card) return;
     const rect = card.getBoundingClientRect();
