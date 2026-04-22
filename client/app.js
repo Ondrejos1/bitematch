@@ -116,29 +116,29 @@ document.addEventListener('DOMContentLoaded', () => {
   if (codeFromUrl) {
     const code = codeFromUrl.toUpperCase();
     document.getElementById('lobby-code-input').value = code;
-    
+
     // Clear name to prevent duplicate errors if testing on same machine
     document.getElementById('username').value = '';
-    
+
     // UI adjustment for joining via link
     document.getElementById('btn-create-lobby').classList.add('hidden');
     document.getElementById('radius-container').classList.add('hidden');
-    
+
     const joinBtn = document.getElementById('btn-join-lobby');
     joinBtn.innerHTML = `<i data-lucide="user-plus"></i> Připojit se`;
     joinBtn.classList.replace('btn-secondary', 'btn-primary');
-    
+
     // Move join section to top for better focus
     const joinSection = document.querySelector('.join-section');
     joinSection.style.border = 'none';
     joinSection.style.marginTop = '0';
     joinSection.querySelector('p').textContent = 'Právě ses připojil k odkazu! Zvol si jméno a emoji:';
-    
+
     // Add special event for this big join button
     joinBtn.addEventListener('click', () => {
-       // Just trigger the join logic
+      // Just trigger the join logic
     });
-    
+
     lucide.createIcons();
   }
 
@@ -283,7 +283,7 @@ function connectToLobby(code) {
     // Generate QR code pointing to this app
     const joinUrl = `${window.location.origin}/?code=${code}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
-    
+
     const qrImg = document.getElementById('qr-code-img');
     qrImg.src = qrUrl;
     qrImg.onload = () => qrImg.style.backgroundColor = 'transparent';
@@ -547,23 +547,21 @@ function drag(e) {
   currentY = e.clientY;
 
   if (!dragRafId) {
-    dragRafId = requestAnimationFrame(updateCardTransform);
+    dragRafId = requestAnimationFrame(() => {
+      updateCardTransform();
+      dragRafId = null;
+    });
   }
 }
 
 function updateCardTransform() {
-  if (!isDragging) {
-    dragRafId = null;
-    return;
-  }
-
   const deltaX = currentX - startX;
   const deltaY = currentY - startY;
   const rotate = deltaX * 0.05;
 
   const card = getTopCard();
   if (card) {
-    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
+    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg) scale(1.02)`;
 
     const likeOpacity = Math.max(0, Math.min(1, deltaX / 100));
     const nopeOpacity = Math.max(0, Math.min(1, -deltaX / 100));
@@ -571,8 +569,6 @@ function updateCardTransform() {
     card.querySelector('.stamp-like').style.opacity = likeOpacity;
     card.querySelector('.stamp-nope').style.opacity = nopeOpacity;
   }
-
-  dragRafId = requestAnimationFrame(updateCardTransform);
 }
 
 function endDrag(e) {
@@ -581,7 +577,7 @@ function endDrag(e) {
     cancelAnimationFrame(dragRafId);
     dragRafId = null;
   }
-  
+
   document.removeEventListener('pointermove', drag);
   document.removeEventListener('pointerup', endDrag);
 
@@ -720,14 +716,14 @@ function showMatchOverlay(restaurant) {
   if ('vibrate' in navigator) {
     navigator.vibrate([100, 50, 100, 50, 300]); // Celebration
   }
-  
+
   const nameEl = document.getElementById('match-restaurant-name');
   const cuisineEl = document.getElementById('match-restaurant-cuisine');
   const imgEl = document.getElementById('match-image');
-  
+
   nameEl.textContent = restaurant.name;
   cuisineEl.textContent = `${restaurant.cuisine} • ${restaurant.address}`;
-  
+
   if (restaurant.imgUrls && restaurant.imgUrls.length > 0) {
     imgEl.style.backgroundImage = `url('${restaurant.imgUrls[0]}')`;
     imgEl.classList.remove('hidden');
@@ -737,7 +733,7 @@ function showMatchOverlay(restaurant) {
   } else {
     imgEl.classList.add('hidden');
   }
-  
+
   document.getElementById('match-overlay').classList.remove('hidden');
   triggerConfetti();
 }
@@ -837,19 +833,19 @@ function resetHomeUI() {
   // Restore all elements to default state
   document.getElementById('btn-create-lobby').classList.remove('hidden');
   document.getElementById('radius-container').classList.remove('hidden');
-  
+
   const joinBtn = document.getElementById('btn-join-lobby');
   joinBtn.innerHTML = 'Připojit';
   joinBtn.classList.replace('btn-primary', 'btn-secondary');
-  
+
   const joinSection = document.querySelector('.join-section');
   joinSection.style.borderTop = '1px solid var(--surface-light)';
   joinSection.style.marginTop = '20px';
   joinSection.querySelector('p').textContent = 'Nebo se připoj do existující:';
-  
+
   document.getElementById('lobby-code-input').value = '';
   document.getElementById('username').value = localStorage.getItem('w2e_name') || '';
-  
+
   lucide.createIcons();
 }
 
