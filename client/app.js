@@ -546,12 +546,7 @@ function drag(e) {
   currentX = e.clientX;
   currentY = e.clientY;
 
-  if (!dragRafId) {
-    dragRafId = requestAnimationFrame(() => {
-      updateCardTransform();
-      dragRafId = null;
-    });
-  }
+  updateCardTransform();
 }
 
 function updateCardTransform() {
@@ -561,7 +556,8 @@ function updateCardTransform() {
 
   const card = getTopCard();
   if (card) {
-    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg) scale(1.02)`;
+    // translateZ(0) for GPU acceleration (stability)
+    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg) translateZ(0)`;
 
     const likeOpacity = Math.max(0, Math.min(1, deltaX / 100));
     const nopeOpacity = Math.max(0, Math.min(1, -deltaX / 100));
