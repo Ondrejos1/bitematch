@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BiteMatch - Najděte společnou chuť</title>
+  <link rel="stylesheet" href="./style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="./manifest.json">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  
+  <div id="app">
+    <button id="theme-toggle" class="theme-toggle" aria-label="Přepnout motiv">🌙</button>
+    <!-- Landing Page -->
+    <div id="screen-home" class="screen active">
+      <div class="hero">
+        <div class="logo">
+          <img class="logo-img" src="./logo.png" alt="BiteMatch Logo" />
+          <h1>BiteMatch</h1>
+        </div>
+        <p class="subtitle">Konec dohadování. Najděte shodu, kam jít jíst s přáteli!</p>
+      </div>
+      
+      <div class="actions">
+        <div class="user-setup">
+          <input type="text" id="username" placeholder="Tvé jméno (např. Ondřej)" maxlength="15">
+          <div class="emoji-picker" id="emoji-picker">
+            <div class="emoji-btn selected" data-avatar="noto:pizza"><img src="https://api.iconify.design/noto:pizza.svg" alt="Pizza" /></div>
+            <div class="emoji-btn" data-avatar="noto:hamburger"><img src="https://api.iconify.design/noto:hamburger.svg" alt="Burger" /></div>
+            <div class="emoji-btn" data-avatar="noto:french-fries"><img src="https://api.iconify.design/noto:french-fries.svg" alt="Fries" /></div>
+            <div class="emoji-btn" data-avatar="noto:hot-dog"><img src="https://api.iconify.design/noto:hot-dog.svg" alt="Hot Dog" /></div>
+            <div class="emoji-btn" data-avatar="noto:taco"><img src="https://api.iconify.design/noto:taco.svg" alt="Taco" /></div>
+            <div class="emoji-btn" data-avatar="noto:sushi"><img src="https://api.iconify.design/noto:sushi.svg" alt="Sushi" /></div>
+            <div class="emoji-btn" data-avatar="noto:doughnut"><img src="https://api.iconify.design/noto:doughnut.svg" alt="Doughnut" /></div>
+            <div class="emoji-btn" data-avatar="noto:ice-cream"><img src="https://api.iconify.design/noto:ice-cream.svg" alt="Ice Cream" /></div>
+          </div>
+
+          <div style="margin-top: 15px;">
+            <label for="radius-slider" style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-secondary); margin-bottom: 5px;">
+              <span>Vzdálenost</span>
+              <span id="radius-value">3.0 km</span>
+            </label>
+            <input type="range" id="radius-slider" min="500" max="20000" step="500" value="3000" style="width: 100%; accent-color: var(--primary-color);">
+          </div>
+        </div>
+
+        <button id="btn-create-lobby" class="btn btn-primary">
+          <i data-lucide="sparkles" class="icon"></i> Vytvořit novou hru
+        </button>
+        
+        <div class="join-section">
+          <p>Nebo se připoj do existující:</p>
+          <div class="join-input-group">
+            <input type="text" id="lobby-code-input" placeholder="Kód (např. X7B9P)" maxlength="6" style="text-transform: uppercase;">
+            <button id="btn-join-lobby" class="btn btn-secondary">Připojit</button>
+          </div>
+        </div>
+      </div>
+      <div id="loading-overlay" class="overlay hidden" style="background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px);">
+        <div class="skeleton-card" style="position: relative; margin-bottom: 20px;"></div>
+        <p id="loading-text" style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color); animation: pulse 1.5s infinite;">Hledám ty nejlepší podniky...</p>
+      </div>
+      <footer class="app-footer">
+        <p>&copy; 2026 BiteMatch • Vyrobeno s ❤️ pro milovníky jídla</p>
+      </footer>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="screen-lobby" class="screen">
+      <div class="lobby-header">
+        <h2>Kód místnosti</h2>
+        <div class="code-display" id="lobby-code-display">------</div>
+        <div id="qr-container" style="margin: 15px auto; text-align: center; background: white; padding: 12px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          <img id="qr-code-img" src="" alt="QR Kód pro připojení" style="width: 150px; height: 150px; display: block; background-color: #f0f0f0;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <button id="btn-copy-link" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 6px 12px;">
+            <i data-lucide="copy" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i> Kopírovat odkaz
+          </button>
+        </div>
+        <p class="instruction">Pošli tento kód přátelům, nebo je nech naskenovat QR kód.</p>
+      </div>
+      
+      <div class="players-container">
+        <h3>Hráči v lobby (<span id="player-count">1</span>)</h3>
+        <ul id="players-list" class="players-list">
+          <!-- Zde se dynamicky vloží hráči -->
+        </ul>
+      </div>
+
+      <div class="lobby-actions">
+        <button id="btn-start-game" class="btn btn-primary hidden">Spustit hru <i data-lucide="rocket" style="margin-left:8px;"></i></button>
+        <p id="waiting-for-host" class="waiting-text">Čeká se na spuštění hry hostem...</p>
+      </div>
+      <footer class="app-footer">
+        <p>&copy; 2026 BiteMatch • Vyrobeno s ❤️ pro milovníky jídla</p>
+      </footer>
+    </div>
+
+    <!-- Swiping Screen -->
+    <div id="screen-swipe" class="screen">
+      <div class="swipe-header">
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div class="stats">
+          <span id="swipe-counter">0 / 0</span>
+        </div>
+      </div>
+      
+      <div class="cards-container" id="cards-container">
+        <!-- Karty se generují zde -->
+        <div class="no-more-cards hidden" id="no-more-cards">
+          <h3>Máš hotovo! 🎉</h3>
+          <p>Čekáme na ostatní...</p>
+          <div class="spinner small"></div>
+        </div>
+      </div>
+      
+      <div class="swipe-controls">
+        <button id="btn-nope" class="control-btn nope"><i data-lucide="x" style="width:36px; height:36px;"></i></button>
+        <button id="btn-like" class="control-btn like"><i data-lucide="heart" style="width:36px; height:36px;"></i></button>
+      </div>
+      
+    </div>
+
+    <!-- Match Overlay (Global) -->
+    <div id="match-overlay" class="match-overlay hidden">
+      <div class="match-content">
+        <h2 class="match-title">SHODA! <i data-lucide="party-popper"></i></h2>
+        <p class="match-subtitle">Všichni máte chuť na tohle:</p>
+        
+        <div class="match-card-premium">
+          <div id="match-image" class="match-image"></div>
+          <div class="match-details">
+            <h3 id="match-restaurant-name"></h3>
+            <p id="match-restaurant-cuisine"></p>
+          </div>
+        </div>
+        
+        <div class="match-actions" style="display: flex; gap: 10px; width: 100%; margin-top: 30px;">
+          <button id="btn-continue-swipe" class="btn btn-secondary" style="flex: 1;">Swipovat dál</button>
+          <button id="btn-go-to-results" class="btn btn-primary" style="flex: 1;">Jdeme jíst!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="screen-results" class="screen">
+      <div class="results-header">
+        <h2>Výsledky <i data-lucide="trophy" style="display:inline-block; vertical-align:middle;"></i></h2>
+        <p>Tady jsou restaurace, na kterých jste se shodli!</p>
+      </div>
+      
+      <div class="results-list" id="results-list">
+        <!-- Výsledky -->
+      </div>
+      
+      <div class="results-actions" style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="btn-reroll" class="btn btn-primary hidden">Zkusit jiné restaurace <i data-lucide="refresh-cw"></i></button>
+        <button id="btn-go-home" class="btn btn-secondary">Zpět na začátek <i data-lucide="home"></i></button>
+      </div>
+      
+      <footer class="app-footer" style="margin-top: 20px;">
+        <p>&copy; 2026 BiteMatch • Vyrobeno s ❤️ pro milovníky jídla</p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
