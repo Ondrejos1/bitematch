@@ -2,7 +2,7 @@
 // Where2Eat - Main Logic
 const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3000'
-  : 'https://bitematch-server.onrender.com'; // SEM VLOŽ SVOJI URL Z RENDERU PO NASAZENÍ
+  : 'https://bitematch.onrender.com';
 let socket;
 
 // State
