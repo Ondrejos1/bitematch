@@ -22,6 +22,38 @@ app.get('/', (req, res) => {
   res.send('BiteMatch API is running 🍕');
 });
 
+// --- Rate Limiter ---
+const rateLimitMap = new Map(); // IP -> { count, resetAt }
+const RATE_LIMIT_MAX = 5;       // max requests
+const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
+
+function rateLimit(req, res, next) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const waitSec = Math.ceil((entry.resetAt - now) / 1000);
+    return res.status(429).json({ error: `Příliš mnoho požadavků. Zkus to znovu za ${waitSec}s.` });
+  }
+
+  entry.count++;
+  return next();
+}
+
+// Cleanup stale rate limit entries every 10 min
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) rateLimitMap.delete(ip);
+  }
+}, 10 * 60 * 1000);
+
 // In-memory store for lobbies
 const lobbies = new Map();
 
@@ -186,7 +218,7 @@ async function fetchRestaurants(lat, lon, radius = 1500) {
 }
 
 // REST endpoints
-app.post('/api/lobby', async (req, res) => {
+app.post('/api/lobby', rateLimit, async (req, res) => {
   const { lat, lon, radius = 1500 } = req.body;
   
   if (!lat || !lon) {
