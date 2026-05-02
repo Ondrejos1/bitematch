@@ -5,6 +5,7 @@ const SERVER_URL = window.location.hostname === 'localhost' || window.location.h
   : 'https://bitematch.onrender.com';
 let socket;
 let isReconnecting = false;
+let intentionalDisconnect = false;
 
 // State
 let state = {
@@ -402,7 +403,10 @@ function getSession() {
 }
 
 function connectToLobby(code) {
-  if (socket) socket.disconnect();
+  if (socket) {
+    intentionalDisconnect = true;
+    socket.disconnect();
+  }
 
   socket = io(SERVER_URL, {
     reconnection: true,
@@ -431,6 +435,10 @@ function connectToLobby(code) {
   });
 
   socket.on('disconnect', (reason) => {
+    if (intentionalDisconnect) {
+      intentionalDisconnect = false;
+      return;
+    }
     if (reason === 'io server disconnect') {
       // Server kicked us — don't reconnect
       showToast('Odpojeno serverem.', 'error');
@@ -546,6 +554,7 @@ function connectToLobby(code) {
 
   socket.on('error', (msg) => {
     showToast(msg, 'error', 5000);
+    intentionalDisconnect = true;
     showScreen('home');
     clearSession();
     socket.disconnect();
@@ -1012,6 +1021,7 @@ function renderResults(results, matches) {
 }
 
 document.getElementById('btn-go-home').addEventListener('click', () => {
+  intentionalDisconnect = true;
   if (socket) socket.disconnect();
   hideLoading();
   clearSession();
