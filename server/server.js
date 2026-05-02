@@ -35,6 +35,34 @@ function generateLobbyCode() {
   return result;
 }
 
+// --- Lobby Expiration Cleanup ---
+const LOBBY_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+setInterval(() => {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [code, lobby] of lobbies.entries()) {
+    if (now - lobby.createdAt > LOBBY_MAX_AGE_MS) {
+      // Disconnect all remaining sockets
+      for (const socketId of lobby.players.keys()) {
+        const s = io.sockets.sockets.get(socketId);
+        if (s) {
+          s.emit('error', 'Lobby vypršelo (neaktivní déle než 1 hodinu).');
+          s.disconnect(true);
+        }
+      }
+      lobbies.delete(code);
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    console.log(`Cleanup: removed ${cleaned} expired ${cleaned === 1 ? 'lobby' : 'lobbies'}. Active: ${lobbies.size}`);
+  }
+}, CLEANUP_INTERVAL_MS);
+
+console.log('Lobby cleanup scheduled: every 5 min, max age 1 hour.');
+
 // Fetch restaurants from Google Places API
 async function fetchRestaurants(lat, lon, radius = 1500) {
   const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyAndDn46ioSltBCezx2KUtpFZ1AlAh1Pu0';
@@ -185,6 +213,7 @@ app.post('/api/lobby', async (req, res) => {
     location: { lat, lon, radius }, // Ukládáme pro pozdější reroll
     status: 'waiting', // waiting, playing, finished
     matches: [], // Array of restaurant IDs that everyone liked
+    createdAt: Date.now()
   };
 
   lobbies.set(code, lobby);
@@ -209,7 +238,7 @@ app.get('/api/lobby/:code', (req, res) => {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  socket.on('join-lobby', ({ code, name, emoji }) => {
+  socket.on('join-lobby', ({ code, name, emoji, rejoin }) => {
     code = code.toUpperCase();
     const lobby = lobbies.get(code);
     
@@ -218,17 +247,28 @@ io.on('connection', (socket) => {
       return;
     }
 
-    if (lobby.status !== 'waiting') {
+    if (lobby.status !== 'waiting' && !rejoin) {
       socket.emit('error', 'Hra už začala');
       return;
     }
 
     // Protection against duplicate nicknames
     const trimmedName = (name || 'Anonym').trim();
-    const isDuplicate = Array.from(lobby.players.values()).some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
-    if (isDuplicate) {
-      socket.emit('error', 'Toto jméno už je v místnosti obsazené! Zvol si jiné.');
-      return;
+    
+    // On rejoin, remove old entry with same name first
+    if (rejoin) {
+      for (const [sid, p] of lobby.players.entries()) {
+        if (p.name.toLowerCase() === trimmedName.toLowerCase()) {
+          lobby.players.delete(sid);
+          break;
+        }
+      }
+    } else {
+      const isDuplicate = Array.from(lobby.players.values()).some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+      if (isDuplicate) {
+        socket.emit('error', 'Toto jméno už je v místnosti obsazené! Zvol si jiné.');
+        return;
+      }
     }
 
     // Assign host if first
@@ -392,14 +432,18 @@ io.on('connection', (socket) => {
     // Cleanup lobbies if needed
     for (let [code, lobby] of lobbies.entries()) {
       if (lobby.players.has(socket.id)) {
+        const leavingPlayer = lobby.players.get(socket.id);
+        const leavingName = leavingPlayer ? leavingPlayer.name : 'Někdo';
         lobby.players.delete(socket.id);
         
         // If lobby is empty, delete it after a delay or immediately
         if (lobby.players.size === 0) {
           lobbies.delete(code);
         } else {
-          // Update others
-          io.to(code).emit('player-joined', Array.from(lobby.players.values()).map(p => ({ name: p.name, emoji: p.emoji })));
+          // Notify others with player name
+          const playersList = Array.from(lobby.players.values()).map(p => ({ name: p.name, emoji: p.emoji }));
+          io.to(code).emit('player-left', { name: leavingName, players: playersList });
+          io.to(code).emit('player-joined', playersList);
           
           // Reassign host if needed
           if (lobby.host === socket.id) {

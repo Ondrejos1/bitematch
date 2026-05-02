@@ -4,6 +4,7 @@ const SERVER_URL = window.location.hostname === 'localhost' || window.location.h
   ? 'http://localhost:3000'
   : 'https://bitematch.onrender.com';
 let socket;
+let isReconnecting = false;
 
 // State
 let state = {
@@ -34,6 +35,60 @@ const screens = {
   results: document.getElementById('screen-results')
 };
 
+// --- Toast Notification System ---
+function showToast(message, type = 'info', duration = 4000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+
+  const titles = {
+    success: 'Hotovo',
+    error: 'Chyba',
+    warning: 'Pozor',
+    info: 'Info'
+  };
+
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type]}</div>
+    <div class="toast-body">
+      <div class="toast-title">${titles[type]}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+  `;
+
+  // Click to dismiss
+  toast.addEventListener('click', () => removeToast(toast));
+
+  container.appendChild(toast);
+
+  // Auto-dismiss
+  const timer = setTimeout(() => removeToast(toast), duration);
+  toast._timer = timer;
+
+  // Limit to 3 visible toasts
+  const toasts = container.querySelectorAll('.toast:not(.toast-removing)');
+  if (toasts.length > 3) {
+    removeToast(toasts[0]);
+  }
+
+  return toast;
+}
+
+function removeToast(toast) {
+  if (!toast || toast.classList.contains('toast-removing')) return;
+  clearTimeout(toast._timer);
+  toast.classList.add('toast-removing');
+  setTimeout(() => toast.remove(), 300);
+}
+
 // Nav
 function showScreen(screenId) {
   Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -50,6 +105,50 @@ function showScreen(screenId) {
 
 // --- Init & Home Screen ---
 document.addEventListener('DOMContentLoaded', () => {
+  // --- In-App Browser Detection ---
+  const ua = navigator.userAgent || navigator.vendor || '';
+  const isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua);
+
+  if (isInAppBrowser) {
+    const banner = document.getElementById('inapp-banner');
+    const openBtn = document.getElementById('btn-open-browser');
+    const dismissBtn = document.getElementById('btn-dismiss-inapp');
+
+    banner.classList.remove('hidden');
+
+    // Set the link to the current URL — this triggers system browser
+    const currentUrl = window.location.href;
+
+    openBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      // Android: Intent URL to force opening in Chrome/default browser
+      if (/android/i.test(ua)) {
+        const intentUrl = `intent://${window.location.host}${window.location.pathname}${window.location.search}#Intent;scheme=https;package=com.android.chrome;end`;
+        window.location.href = intentUrl;
+
+        // Fallback after short delay if intent didn't work
+        setTimeout(() => {
+          window.open(currentUrl, '_system');
+        }, 500);
+      } else {
+        // iOS: window.open can break out of some WebViews
+        window.open(currentUrl, '_blank');
+
+        // Also try direct location change as fallback
+        setTimeout(() => {
+          window.location.href = currentUrl;
+        }, 300);
+      }
+    });
+
+    dismissBtn.addEventListener('click', () => {
+      banner.classList.add('hidden');
+    });
+
+    lucide.createIcons();
+  }
+
   // Theme Toggle
   const themeToggle = document.getElementById('theme-toggle');
   const currentTheme = localStorage.getItem('w2e_theme') || 'light';
@@ -80,6 +179,18 @@ document.addEventListener('DOMContentLoaded', () => {
         registration.unregister();
       }
     });
+  }
+
+  // Auto-reconnect from saved session (e.g. after page reload)
+  const urlParams_precheck = new URLSearchParams(window.location.search);
+  if (!urlParams_precheck.get('code')) {
+    const savedSession = getSession();
+    if (savedSession) {
+      state.user.name = savedSession.name;
+      state.user.emoji = savedSession.emoji;
+      showToast('Obnovuji předchozí session...', 'info', 3000);
+      connectToLobby(savedSession.code);
+    }
   }
 
   // Emoji picker
@@ -145,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create Lobby
   document.getElementById('btn-create-lobby').addEventListener('click', async () => {
     const name = document.getElementById('username').value.trim();
-    if (!name) return alert('Zadej své jméno!');
+    if (!name) return showToast('Zadej své jméno!', 'warning');
 
     state.user.name = name;
     localStorage.setItem('w2e_name', name);
@@ -161,9 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (geoError) {
         hideLoading();
         if (geoError.code === 1) { // PERMISSION_DENIED
-          return alert('Přístup k poloze byl zamítnut. ❌\n\nKlikni na ikonu zámku v adresním řádku a povol polohu.');
+          // Detect in-app browser for a better error message
+          const ua2 = navigator.userAgent || '';
+          if (/FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua2)) {
+            return showToast('Poloha není dostupná v tomto prohlížeči. Otevři odkaz v Safari nebo Chrome (klikni na ⋮ nebo ••• vpravo nahoře a zvol "Otevřít v prohlížeči").', 'error', 8000);
+          }
+          return showToast('Přístup k poloze byl zamítnut. Klikni na ikonu zámku v adresním řádku a povol polohu.', 'error', 6000);
         }
-        return alert('Geolokace selhala. Zkontroluj si nastavení polohy a zkus to znovu.');
+        return showToast('Geolokace selhala. Zkontroluj si nastavení polohy a zkus to znovu.', 'error');
       }
 
       showLoading(`Hledám restaurace v okolí (${radiusValue.textContent})... 🍕`);
@@ -184,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       connectToLobby(data.code);
     } catch (err) {
       hideLoading();
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   });
 
@@ -193,8 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('username').value.trim();
     const code = document.getElementById('lobby-code-input').value.trim().toUpperCase();
 
-    if (!name) return alert('Zadej své jméno!');
-    if (!code || code.length !== 6) return alert('Zadej platný 6místný kód!');
+    if (!name) return showToast('Zadej své jméno!', 'warning');
+    if (!code || code.length !== 6) return showToast('Zadej platný 6místný kód!', 'warning');
 
     state.user.name = name;
     localStorage.setItem('w2e_name', name);
@@ -211,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       connectToLobby(code);
     } catch (err) {
       hideLoading();
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   });
 });
@@ -257,12 +373,56 @@ function deg2rad(deg) {
 }
 
 // --- Socket.IO & Lobby Logic ---
+function saveSession(code) {
+  sessionStorage.setItem('w2e_session', JSON.stringify({
+    code,
+    name: state.user.name,
+    emoji: state.user.emoji,
+    timestamp: Date.now()
+  }));
+}
+
+function clearSession() {
+  sessionStorage.removeItem('w2e_session');
+}
+
+function getSession() {
+  try {
+    const data = JSON.parse(sessionStorage.getItem('w2e_session'));
+    if (!data) return null;
+    // Session valid for 2 hours
+    if (Date.now() - data.timestamp > 2 * 60 * 60 * 1000) {
+      clearSession();
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 function connectToLobby(code) {
   if (socket) socket.disconnect();
 
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, {
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000
+  });
 
   socket.on('connect', () => {
+    if (isReconnecting) {
+      // Reconnecting — try to rejoin with saved state
+      isReconnecting = false;
+      const session = getSession();
+      if (session) {
+        showToast('Připojení obnoveno!', 'success');
+        socket.emit('join-lobby', { code, name: session.name, emoji: session.emoji, rejoin: true });
+      }
+      return;
+    }
+
     const name = document.getElementById('username').value.trim() || 'Anonym';
     const selectedBtn = document.querySelector('.emoji-btn.selected');
     const emoji = selectedBtn ? selectedBtn.dataset.avatar : 'noto:pizza';
@@ -270,9 +430,30 @@ function connectToLobby(code) {
     socket.emit('join-lobby', { code, name, emoji });
   });
 
+  socket.on('disconnect', (reason) => {
+    if (reason === 'io server disconnect') {
+      // Server kicked us — don't reconnect
+      showToast('Odpojeno serverem.', 'error');
+      return;
+    }
+    // Otherwise, Socket.IO will auto-reconnect
+    if (state.lobby.code) {
+      isReconnecting = true;
+      showToast('Spojení ztraceno, obnovuji...', 'warning', 6000);
+    }
+  });
+
+  socket.on('reconnect_failed', () => {
+    showToast('Nepodařilo se obnovit spojení. Zkus obnovit stránku.', 'error', 8000);
+    clearSession();
+  });
+
   socket.on('joined', (data) => {
     state.lobby.code = code;
     state.lobby.isHost = data.isHost;
+
+    // Save session for reconnect
+    saveSession(code);
 
     // Update UI
     document.getElementById('lobby-code-display').textContent = code;
@@ -317,6 +498,18 @@ function connectToLobby(code) {
   });
 
   socket.on('player-joined', (players) => {
+    // Detect new player for toast
+    if (state.lobby.players.length > 0 && players.length > state.lobby.players.length) {
+      const newPlayer = players.find(p => !state.lobby.players.some(op => op.name === p.name));
+      if (newPlayer) {
+        showToast(`${newPlayer.name} se připojil/a! 👋`, 'info', 3000);
+      }
+    }
+    updatePlayersList(players);
+  });
+
+  socket.on('player-left', ({ name, players }) => {
+    showToast(`${name} odešel/a z lobby.`, 'warning', 3000);
     updatePlayersList(players);
   });
 
@@ -324,6 +517,7 @@ function connectToLobby(code) {
     state.lobby.isHost = true;
     document.getElementById('btn-start-game').classList.remove('hidden');
     document.getElementById('waiting-for-host').classList.add('hidden');
+    showToast('Jsi nový host! 👑', 'info', 3000);
   });
 
   socket.on('game-started', (restaurants) => {
@@ -351,8 +545,9 @@ function connectToLobby(code) {
   });
 
   socket.on('error', (msg) => {
-    alert(msg);
+    showToast(msg, 'error', 5000);
     showScreen('home');
+    clearSession();
     socket.disconnect();
   });
 }
@@ -819,6 +1014,7 @@ function renderResults(results, matches) {
 document.getElementById('btn-go-home').addEventListener('click', () => {
   if (socket) socket.disconnect();
   hideLoading();
+  clearSession();
   resetHomeUI();
   state.lobby = { code: null, isHost: false, players: [] };
   state.game = { restaurants: [], currentIndex: 0, totalSwipesNeeded: 0, currentTotalSwipes: 0 };

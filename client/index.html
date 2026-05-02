@@ -12,6 +12,20 @@
 </head>
 <body>
   
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Instagram WebView Warning -->
+  <div id="inapp-banner" class="inapp-banner hidden">
+    <div class="inapp-banner-content">
+      <div class="inapp-icon">📍</div>
+      <h3>Otevři v prohlížeči</h3>
+      <p>In-app prohlížeč Instagramu neumožňuje přístup k poloze. Klikni na tlačítko níže a otevři BiteMatch v Safari nebo Chrome.</p>
+      <a id="btn-open-browser" class="btn btn-primary inapp-btn">Otevřít v prohlížeči <i data-lucide="external-link" style="margin-left: 8px;"></i></a>
+      <button id="btn-dismiss-inapp" class="btn btn-secondary inapp-btn-dismiss">Pokračovat přesto</button>
+    </div>
+  </div>
+
   <div id="app">
     <button id="theme-toggle" class="theme-toggle" aria-label="Přepnout motiv">🌙</button>
     <!-- Landing Page -->
