@@ -51,12 +51,12 @@
             <div class="emoji-btn" data-avatar="noto:ice-cream"><img src="https://api.iconify.design/noto:ice-cream.svg" alt="Ice Cream" /></div>
           </div>
 
-          <div id="radius-container" style="margin-top: 15px;">
-            <label for="radius-slider" style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-secondary); margin-bottom: 5px;">
+          <div id="radius-container" class="radius-container">
+            <label for="radius-slider" class="radius-label">
               <span>Vzdálenost</span>
-              <span id="radius-value">3.0 km</span>
+              <span id="radius-value" class="radius-value">3.0 km</span>
             </label>
-            <input type="range" id="radius-slider" min="500" max="20000" step="500" value="3000" style="width: 100%; accent-color: var(--primary-color);">
+            <input type="range" id="radius-slider" min="500" max="20000" step="500" value="3000" class="custom-slider">
           </div>
         </div>
 
@@ -65,9 +65,8 @@
         </button>
         
         <div class="join-section">
-          <p>Nebo se připoj do existující:</p>
           <div class="join-input-group">
-            <input type="text" id="lobby-code-input" placeholder="Kód (např. X7B9P)" maxlength="6" style="text-transform: uppercase;">
+            <input type="text" id="lobby-code-input" placeholder="Kód lobby" maxlength="6" style="text-transform: uppercase;">
             <button id="btn-join-lobby" class="btn btn-secondary">Připojit</button>
           </div>
         </div>
@@ -76,9 +75,7 @@
         <div class="skeleton-card" style="position: relative; margin-bottom: 20px;"></div>
         <p id="loading-text" style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color); animation: pulse 1.5s infinite;">Hledám ty nejlepší podniky...</p>
       </div>
-      <footer class="app-footer">
-        <p>&copy; 2026 BiteMatch • Vyrobeno s ❤️ pro milovníky jídla</p>
-      </footer>
+
     </div>
 
     <!-- Lobby Screen -->

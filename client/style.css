@@ -248,14 +248,7 @@ input[type="text"]:focus {
 
 .join-section {
   text-align: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--surface-light);
-}
-
-.join-section p {
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-top: 10px;
 }
 
 .join-input-group {
@@ -266,12 +259,82 @@ input[type="text"]:focus {
 .join-input-group input {
   flex: 2;
   text-align: center;
-  letter-spacing: 2px;
-  font-weight: bold;
+  letter-spacing: 3px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px;
 }
 
 .join-input-group button {
   flex: 1;
+}
+
+/* Custom Range Slider */
+.radius-container {
+  margin-top: 12px;
+}
+
+.radius-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.radius-value {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.custom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--surface-light) 0%);
+  outline: none;
+  transition: background 0.1s;
+}
+
+.custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--primary-color);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(255, 75, 75, 0.3);
+}
+
+.custom-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+.custom-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--primary-color);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-light);
 }
 
 /* === Lobby Screen === */

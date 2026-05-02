@@ -212,14 +212,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const radiusSlider = document.getElementById('radius-slider');
   const radiusValue = document.getElementById('radius-value');
   if (radiusSlider && radiusValue) {
-    radiusSlider.addEventListener('input', (e) => {
-      const val = parseInt(e.target.value);
+    function updateSliderFill() {
+      const val = parseInt(radiusSlider.value);
+      const min = parseInt(radiusSlider.min);
+      const max = parseInt(radiusSlider.max);
+      const percent = ((val - min) / (max - min)) * 100;
+      radiusSlider.style.background = `linear-gradient(90deg, var(--primary-color) ${percent}%, var(--surface-light) ${percent}%)`;
+
       if (val < 1000) {
         radiusValue.textContent = `${val} m`;
       } else {
         radiusValue.textContent = `${(val / 1000).toFixed(1)} km`;
       }
-    });
+    }
+
+    radiusSlider.addEventListener('input', updateSliderFill);
+    updateSliderFill(); // Set initial fill
   }
 
   // Parse code from URL for easy joining via QR
@@ -242,9 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Move join section to top for better focus
     const joinSection = document.querySelector('.join-section');
-    joinSection.style.border = 'none';
     joinSection.style.marginTop = '0';
-    joinSection.querySelector('p').textContent = 'Právě ses připojil k odkazu! Zvol si jméno a emoji:';
 
     // Add special event for this big join button
     joinBtn.addEventListener('click', () => {
@@ -1069,9 +1075,7 @@ function resetHomeUI() {
   joinBtn.classList.replace('btn-primary', 'btn-secondary');
 
   const joinSection = document.querySelector('.join-section');
-  joinSection.style.borderTop = '1px solid var(--surface-light)';
-  joinSection.style.marginTop = '20px';
-  joinSection.querySelector('p').textContent = 'Nebo se připoj do existující:';
+  joinSection.style.marginTop = '10px';
 
   document.getElementById('lobby-code-input').value = '';
   document.getElementById('username').value = localStorage.getItem('w2e_name') || '';
