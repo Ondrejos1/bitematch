@@ -1020,6 +1020,34 @@ function renderResults(results, matches) {
   lucide.createIcons();
 }
 
+// Share results
+document.getElementById('btn-share').addEventListener('click', () => {
+  const items = document.querySelectorAll('.result-item');
+  if (items.length === 0) return;
+
+  // Build share text
+  const winner = items[0].querySelector('h3').textContent.replace(/\s+/g, ' ').trim();
+  const playerCount = state.lobby.players.length;
+  const appUrl = window.location.origin;
+
+  let text = `🍽️ ${winner}\n`;
+  text += `Shodli jsme se${playerCount > 1 ? ` (${playerCount} lidí)` : ''} na BiteMatch!\n`;
+  text += `\nZkus to taky → ${appUrl}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'BiteMatch — Výsledek',
+      text: text
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Zkopírováno do schránky!', 'success', 2000);
+    }).catch(() => {
+      showToast('Sdílení se nepodařilo.', 'error');
+    });
+  }
+});
+
 document.getElementById('btn-go-home').addEventListener('click', () => {
   intentionalDisconnect = true;
   if (socket) socket.disconnect();
