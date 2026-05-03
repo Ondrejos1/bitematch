@@ -75,7 +75,10 @@
         <div class="skeleton-card" style="position: relative; margin-bottom: 20px;"></div>
         <p id="loading-text" style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color); animation: pulse 1.5s infinite;">Hledám ty nejlepší podniky...</p>
       </div>
-
+      
+      <footer class="app-footer" style="margin-top: auto; padding-top: 20px; text-align: center; font-size: 12px;">
+        <p>&copy; 2026 BiteMatch • <a href="#" id="link-privacy" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Ochrana soukromí a podmínky</a></p>
+      </footer>
     </div>
 
     <!-- Lobby Screen -->
@@ -175,6 +178,28 @@
       <footer class="app-footer" style="margin-top: 20px;">
         <p>&copy; 2026 BiteMatch • Vyrobeno s ❤️ pro milovníky jídla</p>
       </footer>
+    </div>
+  </div>
+
+  <!-- Privacy Modal -->
+  <div id="privacy-modal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <div class="modal-content" style="background: var(--surface-color); padding: 25px; border-radius: var(--border-radius); max-width: 450px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 20px;">Ochrana soukromí</h2>
+        <button id="btn-close-privacy" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary);"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 20px;">
+        <p><strong>BiteMatch</strong> nevyžaduje registraci a neuchovává žádné osobní profily.</p>
+        <h4 style="color: var(--text-primary); margin-top: 15px; margin-bottom: 5px;">Jak nakládáme s polohou</h4>
+        <p>Pro fungování aplikace požadujeme jednorázový přístup k vaší GPS poloze. Tato data slouží výhradně k vyhledání nejbližších restaurací ve vašem okolí (využíváme Google Maps API). Poloha se ukládá do dočasné paměti serveru pouze po dobu trvání hry a <strong>je nenávratně smazána do 1 hodiny</strong> od vytvoření místnosti.</p>
+        <h4 style="color: var(--text-primary); margin-top: 15px; margin-bottom: 5px;">Cookies a úložiště</h4>
+        <p>Nepoužíváme žádné sledovací cookies třetích stran. Ukládáme pouze nezbytná data do lokálního úložiště vašeho prohlížeče (jméno a vybrané emoji), abyste je nemuseli při další hře vyplňovat znovu.</p>
+        <h4 style="color: var(--text-primary); margin-top: 15px; margin-bottom: 5px;">Zřeknutí se odpovědnosti</h4>
+        <p>Aplikace je poskytována zdarma "tak, jak je". Provozovatel nenese odpovědnost za aktuálnost dat o restauracích (např. pokud má vybraný podnik nečekaně zavřeno).</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-accept-privacy" class="btn btn-primary" style="width: 100%;">Rozumím</button>
+      </div>
     </div>
   </div>
 

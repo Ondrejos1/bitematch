@@ -337,6 +337,26 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     }
   });
+
+  // Privacy Modal Logic
+  const privacyModal = document.getElementById('privacy-modal');
+  const btnClosePrivacy = document.getElementById('btn-close-privacy');
+  const btnAcceptPrivacy = document.getElementById('btn-accept-privacy');
+  const linkPrivacy = document.getElementById('link-privacy');
+
+  if (linkPrivacy) {
+    linkPrivacy.addEventListener('click', (e) => {
+      e.preventDefault();
+      privacyModal.classList.remove('hidden');
+    });
+  }
+
+  const closePrivacy = () => {
+    if (privacyModal) privacyModal.classList.add('hidden');
+  };
+
+  if (btnClosePrivacy) btnClosePrivacy.addEventListener('click', closePrivacy);
+  if (btnAcceptPrivacy) btnAcceptPrivacy.addEventListener('click', closePrivacy);
 });
 
 // Helpers
