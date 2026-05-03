@@ -2,7 +2,7 @@
   "name": "BiteMatch",
   "short_name": "BiteMatch",
   "description": "Konec dohadování. Najděte shodu, kam jít jíst s přáteli!",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f8fa",
   "theme_color": "#ff4b4b",
