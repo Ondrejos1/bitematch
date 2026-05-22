@@ -372,25 +372,11 @@ function hideLoading() {
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      return reject(new Error('Geolokace není podporována.'));
+      reject(new Error('Geolokace není podporována.'));
     }
-
-    // Try high accuracy first (GPS)
-    navigator.geolocation.getCurrentPosition(resolve, (error) => {
-      // Safari often fails with high accuracy — fallback to network-based location
-      if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
-        console.warn('High accuracy geolocation failed, trying low accuracy fallback...');
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 15000,
-          maximumAge: 30000
-        });
-      } else {
-        reject(error);
-      }
-    }, {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
-      timeout: 8000,
+      timeout: 10000,
       maximumAge: 0
     });
   });
@@ -1078,7 +1064,7 @@ document.getElementById('btn-share').addEventListener('click', () => {
     navigator.share({
       title: 'BiteMatch — Výsledek',
       text: text
-    }).catch(() => {});
+    }).catch(() => { });
   } else {
     navigator.clipboard.writeText(text).then(() => {
       showToast('Zkopírováno do schránky!', 'success', 2000);
