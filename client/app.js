@@ -372,11 +372,25 @@ function hideLoading() {
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('Geolokace není podporována.'));
+      return reject(new Error('Geolokace není podporována.'));
     }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
+
+    // Try high accuracy first (GPS)
+    navigator.geolocation.getCurrentPosition(resolve, (error) => {
+      // Safari often fails with high accuracy — fallback to network-based location
+      if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
+        console.warn('High accuracy geolocation failed, trying low accuracy fallback...');
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 15000,
+          maximumAge: 30000
+        });
+      } else {
+        reject(error);
+      }
+    }, {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 8000,
       maximumAge: 0
     });
   });
