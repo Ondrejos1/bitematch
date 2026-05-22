@@ -753,19 +753,19 @@ function setupCardEvents() {
 }
 
 function startDrag(e) {
+  if (e.cancelable) e.preventDefault(); // Prevent Safari from hijacking touch
   isDragging = true;
   startX = e.clientX;
   startY = e.clientY;
   currentX = startX;
   currentY = startY;
 
-  document.addEventListener('pointermove', drag);
+  document.addEventListener('pointermove', drag, { passive: false });
   document.addEventListener('pointerup', endDrag);
 
   const card = getTopCard();
   if (card) {
     card.style.transition = 'none'; // remove transition during drag
-    card.setPointerCapture(e.pointerId);
   }
 }
 
