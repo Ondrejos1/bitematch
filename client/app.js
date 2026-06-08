@@ -300,40 +300,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Create Lobby
-  document.getElementById('btn-create-lobby').addEventListener('click', async () => {
+  const locModal = document.getElementById('location-denied-modal');
+  document.getElementById('btn-dismiss-location').addEventListener('click', () => {
+    locModal.classList.add('hidden');
+  });
+
+  document.getElementById('btn-retry-location').addEventListener('click', () => {
+    locModal.classList.add('hidden');
+    requestLocationAndCreateLobby();
+  });
+
+  async function requestLocationAndCreateLobby() {
     const name = document.getElementById('username').value.trim();
     if (!name) return showToast('Zadej své jméno!', 'warning');
 
     state.user.name = name;
     localStorage.setItem('w2e_name', name);
 
-    // Get location
     try {
       showLoading('Získávám tvoji polohu...');
       try {
-        // Pokusíme se získat reálnou polohu uživatele
         const pos = await getCurrentPosition();
         state.user.lat = pos.coords.latitude;
         state.user.lon = pos.coords.longitude;
       } catch (geoError) {
         hideLoading();
         if (geoError.code === 1) { // PERMISSION_DENIED
-          // Detect in-app browser for a better error message
           const ua2 = navigator.userAgent || '';
           if (/FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua2)) {
             return showToast('Poloha není dostupná v tomto prohlížeči. Otevři odkaz v Safari nebo Chrome (klikni na ⋮ nebo ••• vpravo nahoře a zvol "Otevřít v prohlížeči").', 'error', 8000);
           }
-          // Show location denied modal
-          const locModal = document.getElementById('location-denied-modal');
+          // Show priming modal again — user can try once more
           locModal.classList.remove('hidden');
-
-          document.getElementById('btn-retry-location').onclick = () => {
-            locModal.classList.add('hidden');
-            document.getElementById('btn-create-lobby').click();
-          };
-          document.getElementById('btn-dismiss-location').onclick = () => {
-            locModal.classList.add('hidden');
-          };
           return;
         }
         return showToast('Geolokace selhala. Zkontroluj si nastavení polohy a zkus to znovu.', 'error');
@@ -342,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoading(`Hledám restaurace v okolí (${radiusValue.textContent})... 🍕`);
 
       const radius = parseInt(radiusSlider.value) || 3000;
-      // Create lobby via REST
       const res = await fetch(`${SERVER_URL}/api/lobby`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -359,6 +356,13 @@ document.addEventListener('DOMContentLoaded', () => {
       hideLoading();
       showToast(err.message, 'error');
     }
+  }
+
+  // btn-create-lobby: show location priming modal first
+  document.getElementById('btn-create-lobby').addEventListener('click', () => {
+    const name = document.getElementById('username').value.trim();
+    if (!name) return showToast('Zadej své jméno!', 'warning');
+    locModal.classList.remove('hidden');
   });
 
   // Join Lobby
