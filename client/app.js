@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (/FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua2)) {
             return showToast('Poloha není dostupná v tomto prohlížeči. Otevři odkaz v Safari nebo Chrome (klikni na ⋮ nebo ••• vpravo nahoře a zvol "Otevřít v prohlížeči").', 'error', 8000);
           }
-          return showToast('Přístup k poloze byl zamítnut.', 'error', 6000);
+          return showToast('Přístup k poloze byl zamítnut. Povol ji v nastavení prohlížeče.', 'error', 6000);
         }
         return showToast('Geolokace selhala. Zkontroluj si nastavení polohy a zkus to znovu.', 'error');
       }
