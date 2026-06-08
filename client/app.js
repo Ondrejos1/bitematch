@@ -425,8 +425,22 @@ function getCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error('Geolokace není podporována.'));
+      return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
+    // Try high accuracy first, fall back to low accuracy if it fails
+    navigator.geolocation.getCurrentPosition(resolve, (err) => {
+      if (err.code === 1) {
+        // PERMISSION_DENIED — don't retry
+        reject(err);
+      } else {
+        // TIMEOUT or POSITION_UNAVAILABLE — retry with low accuracy
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 15000,
+          maximumAge: 60000
+        });
+      }
+    }, {
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 0
