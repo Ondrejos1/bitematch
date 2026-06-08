@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!localStorage.getItem('w2e_onboarded')) {
     const modal = document.getElementById('onboarding-modal');
     const slides = modal.querySelectorAll('.onboarding-slide');
-    const dots   = modal.querySelectorAll('.onboarding-dot');
+    const dots = modal.querySelectorAll('.onboarding-dot');
     const nextBtn = document.getElementById('onboarding-next');
     const skipBtn = document.getElementById('onboarding-skip');
     let current = 0;
@@ -323,7 +323,18 @@ document.addEventListener('DOMContentLoaded', () => {
           if (/FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua2)) {
             return showToast('Poloha není dostupná v tomto prohlížeči. Otevři odkaz v Safari nebo Chrome (klikni na ⋮ nebo ••• vpravo nahoře a zvol "Otevřít v prohlížeči").', 'error', 8000);
           }
-          return showToast('Přístup k poloze byl zamítnut. Povol ji v nastavení prohlížeče.', 'error', 6000);
+          // Show location denied modal
+          const locModal = document.getElementById('location-denied-modal');
+          locModal.classList.remove('hidden');
+
+          document.getElementById('btn-retry-location').onclick = () => {
+            locModal.classList.add('hidden');
+            document.getElementById('btn-create-lobby').click();
+          };
+          document.getElementById('btn-dismiss-location').onclick = () => {
+            locModal.classList.add('hidden');
+          };
+          return;
         }
         return showToast('Geolokace selhala. Zkontroluj si nastavení polohy a zkus to znovu.', 'error');
       }
