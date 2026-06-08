@@ -232,12 +232,17 @@
     </div>
   </div>
 
-  <!-- Location Denied Modal -->
+  <!-- Location Permission Modal -->
   <div id="location-denied-modal" class="inapp-banner hidden">
     <div class="inapp-banner-content">
       <div class="inapp-icon">📍</div>
-      <h3>Poloha je vypnutá</h3>
-      <p>BiteMatch potřebuje tvoji polohu, aby mohl najít restaurace v okolí. Bez ní to bohužel nepůjde.</p>
+      <h3>Poloha je zablokovaná</h3>
+      <p>Prohlížeč si zapamatoval, že jsi polohu zakázal/a. Odblokuj ji takto:</p>
+      <div style="background: var(--surface-light); border-radius: 14px; padding: 14px; margin: 12px 0; text-align: left; font-size: 14px; line-height: 1.8; color: var(--text-primary);">
+        🔒 Klikni na <strong>ikonu zámku</strong> (nebo ⓘ) vlevo v adresním řádku<br>
+        📍 Najdi <strong>Poloha</strong> a změň na <strong>Povolit</strong><br>
+        🔄 Obnov stránku a zkus to znovu
+      </div>
       <button id="btn-retry-location" class="btn btn-primary inapp-btn">Zkusit znovu</button>
       <button id="btn-dismiss-location" class="btn btn-secondary inapp-btn-dismiss">Zavřít</button>
     </div>
