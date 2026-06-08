@@ -358,11 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // btn-create-lobby: show location priming modal first
+  // btn-create-lobby: directly request location (triggers native browser dialog)
   document.getElementById('btn-create-lobby').addEventListener('click', () => {
-    const name = document.getElementById('username').value.trim();
-    if (!name) return showToast('Zadej své jméno!', 'warning');
-    locModal.classList.remove('hidden');
+    requestLocationAndCreateLobby();
   });
 
   // Join Lobby
