@@ -1223,3 +1223,119 @@ input[type="text"]:focus {
 .toast-info .toast-progress {
   background: #5ac8fa;
 }
+
+/* === Onboarding Modal === */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 199999;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 20px;
+  animation: fadeInBanner 0.3s ease-out;
+}
+
+.onboarding-box {
+  background: var(--surface-color);
+  border-radius: 28px 28px 20px 20px;
+  padding: 36px 28px 28px;
+  width: 100%;
+  max-width: 460px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 -10px 60px rgba(0,0,0,0.25);
+  animation: slideUpBanner 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.onboarding-skip {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.onboarding-skip:hover {
+  color: var(--text-primary);
+  background: var(--surface-light);
+}
+
+.onboarding-slides {
+  min-height: 200px;
+  position: relative;
+}
+
+.onboarding-slide {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  animation: onboardSlideIn 0.35s ease-out;
+}
+
+.onboarding-slide.active {
+  display: flex;
+}
+
+@keyframes onboardSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.onboarding-emoji {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounce 2.5s infinite;
+}
+
+.onboarding-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.onboarding-desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  max-width: 320px;
+}
+
+.onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0 20px;
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface-light);
+  transition: all 0.3s ease;
+}
+
+.onboarding-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.onboarding-btn {
+  margin-top: 0;
+}

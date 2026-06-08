@@ -181,6 +181,57 @@
     </div>
   </div>
 
+  <!-- Onboarding Modal -->
+  <div id="onboarding-modal" class="onboarding-overlay hidden">
+    <div class="onboarding-box">
+      <button id="onboarding-skip" class="onboarding-skip">Přeskočit</button>
+
+      <div class="onboarding-slides" id="onboarding-slides">
+
+        <div class="onboarding-slide active">
+          <div class="onboarding-emoji">🍕</div>
+          <h2 class="onboarding-title">Vítej v BiteMatch!</h2>
+          <p class="onboarding-desc">Konec dohadování, kam jít jíst. Swipuj restaurace se svými přáteli a najděte shodu rychle a zábavně.</p>
+        </div>
+
+        <div class="onboarding-slide">
+          <div class="onboarding-emoji">👤</div>
+          <h2 class="onboarding-title">Nastav svůj profil</h2>
+          <p class="onboarding-desc">Zadej své jméno a vyber si emoji avatar. Ostatní hráči tě podle toho poznají v lobby.</p>
+        </div>
+
+        <div class="onboarding-slide">
+          <div class="onboarding-emoji">📍</div>
+          <h2 class="onboarding-title">Povol polohu</h2>
+          <p class="onboarding-desc">BiteMatch potřebuje tvoji GPS polohu, aby ti mohl najít restaurace v okolí. Data se nikam neposílají a smažou se do hodiny.</p>
+        </div>
+
+        <div class="onboarding-slide">
+          <div class="onboarding-emoji">❤️</div>
+          <h2 class="onboarding-title">Swipuj restaurace</h2>
+          <p class="onboarding-desc">Přejeď kartičku doprava (❤️ líbí) nebo doleva (✗ nelíbí). Jakmile všichni ohodnotí stejné místo, vznikne <b>SHODA!</b></p>
+        </div>
+
+        <div class="onboarding-slide">
+          <div class="onboarding-emoji">🎉</div>
+          <h2 class="onboarding-title">Jdete jíst!</h2>
+          <p class="onboarding-desc">Na konci uvidíte všechna místa, na kterých jste se shodli. Stačí si vybrat a vyrazit!</p>
+        </div>
+
+      </div>
+
+      <div class="onboarding-dots" id="onboarding-dots">
+        <span class="onboarding-dot active"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+      </div>
+
+      <button id="onboarding-next" class="btn btn-primary onboarding-btn">Dále</button>
+    </div>
+  </div>
+
   <!-- Privacy Modal -->
   <div id="privacy-modal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 20px;">
     <div class="modal-content" style="background: var(--surface-color); padding: 25px; border-radius: var(--border-radius); max-width: 450px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">

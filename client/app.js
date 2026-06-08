@@ -106,6 +106,45 @@ function showScreen(screenId) {
 
 // --- Init & Home Screen ---
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Onboarding (first visit only) ---
+  if (!localStorage.getItem('w2e_onboarded')) {
+    const modal = document.getElementById('onboarding-modal');
+    const slides = modal.querySelectorAll('.onboarding-slide');
+    const dots   = modal.querySelectorAll('.onboarding-dot');
+    const nextBtn = document.getElementById('onboarding-next');
+    const skipBtn = document.getElementById('onboarding-skip');
+    let current = 0;
+
+    modal.classList.remove('hidden');
+
+    function goTo(idx) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = idx;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      nextBtn.textContent = current === slides.length - 1 ? 'Začít!' : 'Dále';
+    }
+
+    function closeOnboarding() {
+      modal.style.animation = 'none';
+      modal.style.opacity = '0';
+      modal.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => modal.classList.add('hidden'), 250);
+      localStorage.setItem('w2e_onboarded', '1');
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (current < slides.length - 1) {
+        goTo(current + 1);
+      } else {
+        closeOnboarding();
+      }
+    });
+
+    skipBtn.addEventListener('click', closeOnboarding);
+  }
+
   // --- In-App Browser Detection ---
   const ua = navigator.userAgent || navigator.vendor || '';
   const isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|Twitter|TikTok/i.test(ua);
@@ -556,12 +595,15 @@ function connectToLobby(code) {
 
   socket.on('game-started', (restaurants) => {
     state.game.restaurants = restaurants;
-    state.game.currentIndex = restaurants.length - 1; // Start from end for z-index stacking
+    state.game.currentIndex = restaurants.length - 1;
     state.game.totalSwipesNeeded = restaurants.length * state.lobby.players.length;
 
-    initCards();
-    updateProgress(0, state.game.totalSwipesNeeded);
+    // Show swipe screen first, then run countdown
     showScreen('swipe');
+    runCountdown(3, () => {
+      initCards();
+      updateProgress(0, state.game.totalSwipesNeeded);
+    });
   });
 
   socket.on('bingo-match', (restaurant) => {
@@ -702,27 +744,28 @@ function initCards() {
 
     const encodedImages = encodeURIComponent(JSON.stringify(images));
 
-    // Hodnocení a cena
-    const ratingStr = r.rating ? `<i data-lucide="star" style="width:16px; height:16px; fill:var(--secondary-color); color:var(--secondary-color); display:inline-block; vertical-align:middle; margin-right:4px; margin-top:-2px;"></i>${r.rating} <span style="color:var(--text-secondary); font-size: 12px; font-weight: normal;">(${r.user_ratings_total}x)</span>` : '<i data-lucide="star" style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-right:4px; margin-top:-2px;"></i> Nové';
+    const ratingTag = r.rating
+      ? `<span class="tag tag-rating">⭐ ${r.rating}</span>`
+      : '';
     let priceStr = '';
     if (r.price_level !== null && r.price_level !== undefined) {
-      priceStr = '$'.repeat(Math.max(1, r.price_level));
+      priceStr = `<span class="tag tag-price">${'$'.repeat(Math.max(1, r.price_level))}</span>`;
     }
 
     card.innerHTML = `
-      <div class="card-image-placeholder" style="background-image: url('${images[0]}'); background-size: cover; background-position: center;" data-images="${encodedImages}" data-idx="0">
+      <div class="card-image" style="background-image:url('${images[0]}')" data-images="${encodedImages}" data-idx="0">
         ${dashesHtml}
-      </div>
-      <div class="card-content">
-        <div class="card-cuisine">${r.cuisine}</div>
-        <h2 class="card-title">${r.name}</h2>
-        <div class="card-address">
-          <i data-lucide="map-pin" style="width:16px; height:16px; flex-shrink:0; margin-top:2px;"></i>
-          <span>${r.address} ${distanceStr ? `• <b style="color:var(--primary-color)">${distanceStr}</b>` : ''}</span>
-        </div>
-        <div class="card-meta">
-          <div class="card-rating">${ratingStr}</div>
-          <div class="card-price">${priceStr}</div>
+        <div class="card-overlay"></div>
+        <div class="card-info">
+          <div class="card-tags">
+            <span class="tag tag-cuisine">${r.cuisine}</span>
+            ${ratingTag}
+            ${priceStr}
+          </div>
+          <h2 class="card-title">${r.name}</h2>
+          <div class="card-address">
+            <span>📍 ${r.address}${distanceStr ? ` &nbsp;&middot;&nbsp; <b>${distanceStr}</b>` : ''}</span>
+          </div>
         </div>
       </div>
       <div class="card-stamp stamp-like">LIKE</div>
@@ -847,7 +890,7 @@ function endDrag(e) {
 }
 
 function switchPhoto(card, dir) {
-  const imgDiv = card.querySelector('.card-image-placeholder');
+  const imgDiv = card.querySelector('.card-image');
   if (!imgDiv) return;
 
   const imagesStr = imgDiv.getAttribute('data-images');
@@ -858,7 +901,6 @@ function switchPhoto(card, dir) {
 
   let idx = parseInt(imgDiv.getAttribute('data-idx'));
   idx += dir;
-
   if (idx < 0) idx = 0;
   if (idx >= images.length) idx = images.length - 1;
 
@@ -940,15 +982,23 @@ function updateProgress(current, total) {
 // --- Match & Results ---
 function showMatchOverlay(restaurant) {
   if ('vibrate' in navigator) {
-    navigator.vibrate([100, 50, 100, 50, 300]); // Celebration
+    navigator.vibrate([100, 50, 100, 50, 300]);
   }
 
   const nameEl = document.getElementById('match-restaurant-name');
   const cuisineEl = document.getElementById('match-restaurant-cuisine');
   const imgEl = document.getElementById('match-image');
+  const navigateBtn = document.getElementById('btn-match-navigate');
 
   nameEl.textContent = restaurant.name;
   cuisineEl.textContent = `${restaurant.cuisine} • ${restaurant.address}`;
+
+  if (restaurant.mapsUrl) {
+    navigateBtn.href = restaurant.mapsUrl;
+    navigateBtn.style.display = '';
+  } else {
+    navigateBtn.style.display = 'none';
+  }
 
   if (restaurant.imgUrls && restaurant.imgUrls.length > 0) {
     imgEl.style.backgroundImage = `url('${restaurant.imgUrls[0]}')`;
@@ -968,6 +1018,11 @@ function showMatchOverlay(restaurant) {
 document.getElementById('btn-go-to-results').addEventListener('click', () => {
   document.getElementById('match-overlay').classList.add('hidden');
   socket.emit('force-finish', state.lobby.code);
+});
+
+document.getElementById('btn-match-continue').addEventListener('click', () => {
+  // Dismiss overlay without ending game — let players keep swiping
+  document.getElementById('match-overlay').classList.add('hidden');
 });
 
 // Tlačítko pokračovat zrušeno, BINGO se ukončí automaticky přes timeout na serveru
@@ -1005,7 +1060,11 @@ function renderResults(results, matches) {
     navigator.vibrate([200, 100, 200]);
   }
 
-  // Show reroll button only for host
+  // Store for show-all toggle
+  window._allResults = results;
+  window._matchedIds = matches;
+  window._showingAll = false;
+
   const rerollBtn = document.getElementById('btn-reroll');
   if (state.lobby.isHost) {
     rerollBtn.classList.remove('hidden');
@@ -1013,6 +1072,11 @@ function renderResults(results, matches) {
     rerollBtn.classList.add('hidden');
   }
 
+  const likedResults = results.filter(r => r.likes > 0);
+  _renderResultsList(likedResults, matches);
+}
+
+function _renderResultsList(results, matches) {
   const list = document.getElementById('results-list');
   list.innerHTML = '';
 
@@ -1023,7 +1087,7 @@ function renderResults(results, matches) {
   }
 
   results.forEach((r, index) => {
-    const isWinner = matches.includes(r.id) || index === 0; // Highlight matches or top 1
+    const isWinner = matches.includes(r.id) || (index === 0 && r.likes > 0);
     const el = document.createElement('div');
     el.className = `result-item ${isWinner ? 'winner' : ''}`;
 
@@ -1109,3 +1173,52 @@ document.getElementById('btn-reroll').addEventListener('click', () => {
     socket.emit('reroll-restaurants', state.lobby.code);
   }
 });
+
+// "Zobrazit vše" toggle
+document.getElementById('btn-show-all').addEventListener('click', () => {
+  const btn = document.getElementById('btn-show-all');
+  if (!window._allResults) return;
+
+  window._showingAll = !window._showingAll;
+  if (window._showingAll) {
+    _renderResultsList(window._allResults, window._matchedIds);
+    btn.innerHTML = '<i data-lucide="chevron-up"></i> Zobrazit jen shody';
+  } else {
+    const likedResults = window._allResults.filter(r => r.likes > 0);
+    _renderResultsList(likedResults, window._matchedIds);
+    btn.innerHTML = '<i data-lucide="list"></i> Zobrazit vše';
+  }
+  lucide.createIcons();
+});
+
+// --- Countdown ---
+function runCountdown(from, onDone) {
+  const overlay = document.getElementById('countdown-overlay');
+
+  overlay.classList.remove('hidden');
+  let count = from;
+
+  function showNext() {
+    const numEl = document.getElementById('countdown-number');
+    if (count > 0) {
+      numEl.textContent = count;
+      // Re-trigger CSS animation by forcing reflow
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = '';
+      count--;
+      setTimeout(showNext, 800);
+    } else {
+      numEl.textContent = 'GO!';
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = '';
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        onDone();
+      }, 600);
+    }
+  }
+
+  showNext();
+}
