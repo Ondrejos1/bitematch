@@ -95,12 +95,33 @@ setInterval(() => {
 
 console.log('Lobby cleanup scheduled: every 5 min, max age 1 hour.');
 
+// --- Restaurant Cache (30 min TTL, keyed by rounded lat/lon + radius) ---
+const restaurantCache = new Map();
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+function getCacheKey(lat, lon, radius) {
+  // Round to ~100m precision
+  const rlat = Math.round(lat * 1000) / 1000;
+  const rlon = Math.round(lon * 1000) / 1000;
+  return `${rlat},${rlon},${radius}`;
+}
+
 // Fetch restaurants from Google Places API
 async function fetchRestaurants(lat, lon, radius = 1500) {
+  // Cache check
+  const cacheKey = getCacheKey(lat, lon, radius);
+  const cached = restaurantCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    console.log(`Cache hit for key: ${cacheKey}`);
+    // Return a fresh shuffle of cached data so each lobby gets a different order
+    return [...cached.data].sort(() => 0.5 - Math.random()).slice(0, 30);
+  }
+
   const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyAndDn46ioSltBCezx2KUtpFZ1AlAh1Pu0';
-  const googleUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lon}&radius=${radius}&type=restaurant&keyword=restaurace|bistro&language=cs&key=${GOOGLE_API_KEY}`;
+  const googleUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lon}&radius=${radius}&type=restaurant&language=cs&key=${GOOGLE_API_KEY}`;
   
   try {
+
     const response = await fetch(googleUrl);
     if (!response.ok) {
       throw new Error(`Google API returned status ${response.status}`);
@@ -210,7 +231,12 @@ async function fetchRestaurants(lat, lon, radius = 1500) {
       return r;
     }));
 
+    // Save to cache (store all before slicing so rerolls get variety)
+    restaurantCache.set(cacheKey, { data: detailedRestaurants, ts: Date.now() });
+    console.log(`Cached ${detailedRestaurants.length} restaurants for key: ${cacheKey}`);
+
     return detailedRestaurants;
+
   } catch (error) {
     console.error('Error fetching restaurants:', error);
     return [];
